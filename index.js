@@ -1,28 +1,118 @@
-const express = require("express") // old js
-
+const express = require("express")
+const cors = require("cors")
+const fs = require("fs")
+const path = require("path")
 
 const app = express()
 const port = 3000
+const STUDENTS_FILE = path.resolve(__dirname, "students.json")
+
+app.use(cors())
+app.use(express.json())
+
+const loadStudentsFromFile = () => {
+	try {
+		const fileData = fs.readFileSync(STUDENTS_FILE, "utf8")
+		return JSON.parse(fileData)
+	} catch (error) {
+		console.error("Failed to load students.json:", error)
+		return []
+	}
+}
+
+const saveStudentsToFile = (students) => {
+	fs.writeFileSync(STUDENTS_FILE, JSON.stringify(students, null, 2), "utf8")
+}
+
+const getNextStudentId = (students) => {
+	const maxId = students.reduce((max, student) => Math.max(max, student.id || 0), 0)
+	return maxId + 1
+}
+
+const validateStudentPayload = (payload) => {
+	if (!payload || typeof payload !== "object") return false
+	const { name, email, major, gpa } = payload
+	return (
+		typeof name === "string" && name.trim() &&
+		typeof email === "string" && email.trim() &&
+		typeof major === "string" && major.trim() &&
+		Number.isFinite(gpa) && gpa >= 0 && gpa <= 4.0
+	)
+}
+
+const students = loadStudentsFromFile()
 
 app.get("/", (req, res) => {
-	res.json({ msg: "Hello World!" })
+	res.json(students)
+})
+
+app.get("/students", (req, res) => {
+	res.json(students)
+})
+
+app.get("/students/:id", (req, res) => {
+	const id = Number(req.params.id)
+	const student = students.find((item) => item.id === id)
+
+	if (!student) {
+		return res.status(404).json({ error: "Student not found" })
+	}
+
+	res.json(student)
+})
+
+app.post("/students", (req, res) => {
+	const newStudent = req.body
+
+	if (!validateStudentPayload(newStudent)) {
+		return res.status(400).json({ error: "Invalid student payload" })
+	}
+
+	newStudent.id = getNextStudentId(students)
+	students.push(newStudent)
+	saveStudentsToFile(students)
+
+	res.status(201).json(newStudent)
+})
+
+app.put("/students/:id", (req, res) => {
+	const id = Number(req.params.id)
+	const existingStudent = students.find((item) => item.id === id)
+
+	if (!existingStudent) {
+		return res.status(404).json({ error: "Student not found" })
+	}
+
+	const updates = req.body
+
+	if (!validateStudentPayload({ ...existingStudent, ...updates })) {
+		return res.status(400).json({ error: "Invalid student payload" })
+	}
+
+	Object.assign(existingStudent, updates)
+	saveStudentsToFile(students)
+
+	res.json(existingStudent)
+})
+
+app.delete("/students/:id", (req, res) => {
+	const id = Number(req.params.id)
+	const index = students.findIndex((item) => item.id === id)
+
+	if (index === -1) {
+		return res.status(404).json({ error: "Student not found" })
+	}
+
+	const removed = students.splice(index, 1)[0]
+	saveStudentsToFile(students)
+
+	res.json({ message: "Student deleted", student: removed })
 })
 
 app.listen(port, () => {
 	console.log(`Example app listening on port ${port}`)
 })
 
-// NODEMON
-
-// send data to the exposed endpoints
-// import data from students.json and send it to the client when they hit the endpoint
-// use postman to send data to endpoints
-
-// GET - retrieve data
-// POST - create new data
-// PUT - update existing data
-// DELETE - remove data
-// CRUD - create, read, update, delete
 
 // SEND DATA vs SEND ERROR
 // STATUS CODES - 200, 201, 400, 404
