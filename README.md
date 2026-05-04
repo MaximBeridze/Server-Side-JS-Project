@@ -1,71 +1,104 @@
-# Exercise 01 — File System & JSON
+# ServerJS Project — Student API
 
-## Goal
+## Project Overview
 
-Read a JSON file, transform its data, and write the result to a Markdown file — all using Node.js built-in modules, no `npm install` needed.
+This project is an Express-based Node.js server that exposes a simple student API powered by `students.json`.
 
-## What you will build
+It is organized with a clean separation of concerns:
 
-A script that reads `students.json` and generates a `student_report.md` file.
+- `index.js` — server setup and route mounting
+- `students.js` — Express routes for `/students`
+- `studentsController.js` — request handlers and HTTP response logic
+- `studentServices.js` — data loading, persistence, and student operations
+- `students.json` — the persistent student dataset
 
-## Run it
+## Features
+
+- Read student records from `students.json`
+- Return the full student list
+- Return a single student by ID
+- Create new student records
+- Update existing student records
+- Delete student records
+
+## Installation
+
+```bash
+cd "c:/Users/*User*/Desktop/*Project*"
+npm install
+```
+
+## Run the server
 
 ```bash
 node index.js
 ```
 
-If it works, you should see a success message in the terminal and a new `student_report.md` file appear next to `index.js`.
+The server listens on `http://localhost:3000`.
 
-## Modules you will need
+## Available Endpoints
 
-| Module | What it does                            |
-| ------ | --------------------------------------- |
-| `fs`   | Read and write files on your filesystem |
-| `path` | Build file paths that work on any OS    |
+### `GET /`
 
-Both are built into Node.js — just `require` them, no install needed.
+Returns a small API welcome message.
 
-## Key functions
+### `GET /students`
 
-- `fs.readFileSync(filePath, 'utf-8')` — reads a file and returns its contents as a string
-- `fs.writeFileSync(filePath, content, 'utf-8')` — writes a string to a file (creates it if it doesn't exist)
-- `JSON.parse(string)` — converts a JSON string into a JavaScript object
-- `path.join(__dirname, 'filename')` — builds a safe absolute path relative to the current script
+Returns the full list of students.
 
-## Steps
+### `GET /students/:id`
 
-1. Require the `fs` and `path` modules
-2. Read `students.json` using `fs.readFileSync`
-3. Parse the JSON string into a JavaScript array using `JSON.parse`
-4. Build a Markdown string by looping over the students array
-5. Write the result to `student_report.md` using `fs.writeFileSync`
+Returns a single student by numeric ID.
 
-## Expected output
+### `POST /students`
 
-The generated `student_report.md` should look like this:
+Creates a new student.
 
-```markdown
-# Student Report
+Request body example:
 
-Generated on: 20/03/2026
-
-## Summary
-
-Total Students: 3
-
-## Student Details
-
-### Alice Martin
-
-- **Email:** alice.martin@epita.fr
-- **Major:** Computer Science
-- **GPA:** 3.8
-- **ID:** 1
-  ...
+```json
+{
+  "name": "Emma Dupont",
+  "email": "emma.dupont@epita.fr",
+  "major": "Computer Science",
+  "gpa": 3.7
+}
 ```
 
-## Hints
+### `PUT /students/:id`
 
-- `__dirname` is a Node.js variable that always points to the folder where your script lives — useful for building reliable file paths
-- `Array.forEach()` lets you loop over each student and append their info to your Markdown string
-- Template literals (backticks) make it easy to embed variables inside strings: `` `Hello ${name}` ``
+Updates an existing student.
+
+Request body example:
+
+```json
+{
+  "email": "emma.dupont@epita.fr",
+  "gpa": 3.9
+}
+```
+
+### `DELETE /students/:id`
+
+Deletes the student with the given ID.
+
+## Data validation
+
+The server validates student payloads before create/update:
+
+- `name`, `email`, and `major` must be non-empty strings
+- `gpa` must be a number between `0` and `4.0`
+
+## Notes
+
+- `students.json` is used as the data store, and changes are written back to the file.
+- CORS is enabled so the frontend can fetch data from the API.
+- The project uses CommonJS modules (`require` / `module.exports`).
+
+## Useful commands
+
+```bash
+node index.js
+```
+
+If you want a quick manual test, use `curl` or Postman against `http://localhost:3000`.
