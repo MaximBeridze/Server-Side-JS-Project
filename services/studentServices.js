@@ -1,7 +1,7 @@
 const fs = require("fs")
 const path = require("path")
 
-const STUDENTS_FILE = path.resolve(__dirname, "students.json")
+const STUDENTS_FILE = path.resolve(__dirname, "../students.json")
 
 const loadStudentsFromFile = () => {
 	try {

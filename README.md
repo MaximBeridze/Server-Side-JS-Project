@@ -1,60 +1,147 @@
-# ServerJS Project — Student API
+# Server-Side JS Project — Student and Course API
 
 ## Project Overview
 
-This project is an Express-based Node.js server that exposes a simple student API powered by `students.json`.
+This project is an Express-based Node.js server that exposes a simple API.
+The project contains two resources:
 
-It is organized with a clean separation of concerns:
+- Students — stored locally in `students.json`
+- Courses — stored in MongoDB using Mongoose
 
-- `index.js` — server setup and route mounting
-- `students.js` — Express routes for `/students`
-- `studentsController.js` — request handlers and HTTP response logic
-- `studentServices.js` — data loading, persistence, and student operations
-- `students.json` — the persistent student dataset
+The backend is organized using routes, controllers, services, and models.
 
-## Features
+## Technologies Used
 
-- Read student records from `students.json`
-- Return the full student list
-- Return a single student by ID
-- Create new student records
-- Update existing student records
-- Delete student records
+- Node.js
+- Express
+- CORS
+- Mongoose (MongoDB)
+- Nodemon
+- Postman
+- Docker
+
+## Project Structure
+
+```txt
+.
+├── FONT/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
+├── controllers/
+│   ├── studentsController.js
+│   └── courseController.js
+├── middleware/
+│   └── auth-middleware.js
+├── models/
+│   └── courseModel.js
+├── routes/
+│   ├── students.js
+│   └── course.js
+├── services/
+│   ├── studentServices.js
+│   └── courseService.js
+├── students.json
+├── index.js
+├── package.json
+├── package-lock.json
+└── README.md
+```
 
 ## Installation
 
+Install the project dependencies:
+
 ```bash
-cd "c:/Users/*User*/Desktop/*Project*"
 npm install
 ```
 
-## Run the server
+## Running MongoDB with Docker
+
+The Course API uses MongoDB, so MongoDB must be running before testing the course routes.
+
+Start MongoDB with Docker:
+
+```bash
+docker run --name serverjs-mongo -d -p 27017:27017 mongo
+```
+
+This starts MongoDB on the default port:
+
+```txt
+27017
+```
+
+The backend connects to MongoDB using:
+
+```txt
+mongodb://127.0.0.1:27017/student_api
+```
+
+If the Docker container already exists but is stopped, start it with:
+
+```bash
+docker start serverjs-mongo
+```
+
+To stop it:
+
+```bash
+docker stop serverjs-mongo
+```
+
+## Running the Server
+
+Start the backend with:
+
+```bash
+npm run dev
+```
+
+Or run it directly with:
 
 ```bash
 node index.js
 ```
 
-The server listens on `http://localhost:3000`.
+The server runs on:
 
-## Available Endpoints
+```txt
+http://localhost:3000
+```
 
-### `GET /`
+When everything is working, the terminal should show:
 
-Returns a small API welcome message.
+```txt
+Example app listening on port 3000
+Connected to MongoDB
+```
 
-### `GET /students`
+## API Endpoints
 
-Returns the full list of students.
+## Root Route
 
-### `GET /students/:id`
+### GET /
 
-Returns a single student by numeric ID.
+Returns a simple message with the available API endpoints.
 
-### `POST /students`
+## Student Routes
+
+The student resource uses `students.json` as storage.
+
+### GET /students
+
+Returns all students.
+
+### GET /students/:id
+
+Returns one student by numeric ID.
+
+### POST /students
 
 Creates a new student.
 
-Request body example:
+Example body:
 
 ```json
 {
@@ -65,40 +152,131 @@ Request body example:
 }
 ```
 
-### `PUT /students/:id`
+### PUT /students/:id
 
 Updates an existing student.
 
-Request body example:
+Example body:
 
 ```json
 {
-  "email": "emma.dupont@epita.fr",
   "gpa": 3.9
 }
 ```
 
-### `DELETE /students/:id`
+### DELETE /students/:id
 
-Deletes the student with the given ID.
+Deletes a student by ID.
 
-## Data validation
+## Course Routes
 
-The server validates student payloads before create/update:
+The course resource uses MongoDB with Mongoose.
 
-- `name`, `email`, and `major` must be non-empty strings
-- `gpa` must be a number between `0` and `4.0`
+All course routes are protected by the `authCheck` middleware.
 
-## Notes
+To access the course routes, add this header in Postman:
 
-- `students.json` is used as the data store, and changes are written back to the file.
-- CORS is enabled so the frontend can fetch data from the API.
-- The project uses CommonJS modules (`require` / `module.exports`).
-
-## Useful commands
-
-```bash
-node index.js
+```txt
+Authorization: Bearer test-token
 ```
 
-If you want a quick manual test, use `curl` or Postman against `http://localhost:3000`.
+### GET /api/courses
+
+Returns all courses.
+
+### GET /api/courses/:id
+
+Returns one course by MongoDB `_id`.
+
+### POST /api/courses
+
+Creates a new course.
+
+Example body:
+
+```json
+{
+  "title": "Web Development",
+  "description": "Introduction to backend APIs using Express and MongoDB",
+  "credits": 4,
+  "instructor": "Mr. Dupont",
+  "semester": "Semester 2"
+}
+```
+
+Expected status code:
+
+```txt
+201 Created
+```
+
+### PUT /api/courses/:id
+
+Updates a course by MongoDB `_id`.
+
+Example body:
+
+```json
+{
+  "credits": 5
+}
+```
+
+### DELETE /api/courses/:id
+
+Deletes a course by MongoDB `_id`.
+
+## Authentication Middleware
+
+The Course API uses a simple middleware called `authCheck`.
+
+If the request does not include an `Authorization` header, the server returns:
+
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
+Expected status code:
+
+```txt
+401 Unauthorized
+```
+
+## Postman Test Checklist
+
+These requests should be tested before submission:
+
+- POST `/api/courses` — create at least 2 course entries
+- GET `/api/courses` — return the full list of courses
+- GET `/api/courses/:id` — return one course using its MongoDB `_id`
+- PUT `/api/courses/:id` — update one field
+- DELETE `/api/courses/:id` — delete one course
+- GET `/api/courses` without an Authorization header — return `401 Unauthorized`
+
+## Example Course Test Data
+
+First course:
+
+```json
+{
+  "title": "Web Development",
+  "description": "Introduction to backend APIs using Express and MongoDB",
+  "credits": 4,
+  "instructor": "Mr. Dupont",
+  "semester": "Semester 2"
+}
+```
+
+Second course:
+
+```json
+{
+  "title": "Database Systems",
+  "description": "Relational and NoSQL database concepts",
+  "credits": 3,
+  "instructor": "Ms. Martin",
+  "semester": "Semester 2"
+}
+```
