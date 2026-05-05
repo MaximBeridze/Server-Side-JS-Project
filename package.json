@@ -23,7 +23,8 @@
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "fs": "^0.0.1-security"
+    "fs": "^0.0.1-security",
+    "mongoose": "^9.6.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
